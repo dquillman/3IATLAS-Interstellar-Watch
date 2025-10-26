@@ -2,6 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module dirname workaround
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -17,6 +23,9 @@ const openai = new OpenAI({
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from dist folder (for production)
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -99,8 +108,14 @@ app.post('/api/mission-briefing', async (req, res) => {
     }
 });
 
+// Catch-all route to serve index.html for client-side routing
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 3I/ATLAS Backend API running on http://localhost:${PORT}`);
     console.log(`✓ Health check: http://localhost:${PORT}/api/health`);
     console.log(`✓ Mission briefing: POST http://localhost:${PORT}/api/mission-briefing`);
+    console.log(`✓ Frontend: http://localhost:${PORT}`);
 });
