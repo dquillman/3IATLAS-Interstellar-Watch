@@ -15,7 +15,7 @@ const StatusItem: React.FC<{ label: string; value: string; positive: boolean }> 
   );
 };
 
-const ThreatGauge: React.FC<{ level: SummaryData['threatLevel'] }> = ({ level }) => {
+const ThreatGauge: React.FC<{ level: SummaryData['threatLevel']; reason: string }> = ({ level, reason }) => {
     const levelConfig: { [key in SummaryData['threatLevel']]: { angle: number; labelColor: string } } = {
         'Nominal': { angle: -67.5, labelColor: 'bg-green-500 text-green-900' },
         'Elevated': { angle: -22.5, labelColor: 'bg-yellow-500 text-yellow-900' },
@@ -46,8 +46,8 @@ const ThreatGauge: React.FC<{ level: SummaryData['threatLevel'] }> = ({ level })
                             stroke="white"
                             strokeWidth="4"
                             strokeLinecap="round"
-                            style={{ 
-                                transform: `rotate(${currentConfig.angle}deg)`, 
+                            style={{
+                                transform: `rotate(${currentConfig.angle}deg)`,
                                 transition: 'transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55)',
                                 filter: 'drop-shadow(0 0 3px rgba(0,0,0,0.5))'
                             }}
@@ -61,6 +61,7 @@ const ThreatGauge: React.FC<{ level: SummaryData['threatLevel'] }> = ({ level })
                      {level}
                  </span>
             </div>
+            <p className="text-sm text-comet-blue-300 mt-3 text-center max-w-xs">{reason}</p>
         </div>
     );
 }
@@ -82,7 +83,7 @@ const StatusDashboard: React.FC<StatusDashboardProps> = ({ summary }) => {
         </div>
 
         <div className="md:col-span-2 lg:col-span-1">
-            <ThreatGauge level={summary.threatLevel} />
+            <ThreatGauge level={summary.threatLevel} reason={summary.threatLevelReason} />
         </div>
       </div>
       <div className="mt-6 pt-6 border-t border-comet-blue-800 text-center">

@@ -22,21 +22,21 @@ const ConfidenceBadge: React.FC<{ level: ConfidenceLevel }> = ({ level }) => {
 const ObservationTimeline: React.FC<ObservationTimelineProps> = ({ observations }) => {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left table-auto">
+      <table className="w-full text-left table-fixed">
         <thead className="border-b border-comet-blue-700 text-sm text-comet-blue-300">
           <tr>
-            <th className="p-3">Date</th>
-            <th className="p-3">Observatory/Source</th>
+            <th className="p-3 w-32">Date</th>
+            <th className="p-3 w-48">Observatory/Source</th>
             <th className="p-3">Finding</th>
-            <th className="p-3 text-center">Confidence</th>
+            <th className="p-3 text-center w-28">Confidence</th>
           </tr>
         </thead>
         <tbody>
           {observations.map((obs) => (
             <tr key={obs.id} className="border-b border-comet-blue-800 hover:bg-comet-blue-800/50 transition-colors duration-200">
-              <td className="p-3 align-top whitespace-nowrap">{obs.dateObserved}</td>
-              <td className="p-3 align-top font-semibold">{obs.observatory}</td>
-              <td className="p-3 align-top text-comet-blue-300">
+              <td className="p-3 align-top whitespace-nowrap text-sm">{obs.dateObserved}</td>
+              <td className="p-3 align-top font-semibold text-sm break-words">{obs.observatory}</td>
+              <td className="p-3 align-top text-comet-blue-300 text-sm">
                 {obs.keyFinding}
               </td>
               <td className="p-3 align-top text-center">

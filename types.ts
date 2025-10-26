@@ -30,6 +30,7 @@ export interface SummaryData {
     note: string;
   };
   threatLevel: 'Nominal' | 'Elevated' | 'High' | 'Critical';
+  threatLevelReason: string;
   assessment: string;
 }
 

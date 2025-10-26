@@ -107,18 +107,18 @@ const App: React.FC = () => {
             onExportData={handleExportData}
             canExport={!!summary}
         />
-        <main className="mt-8 grid gap-8 grid-cols-1">
-          <div className="lg:col-span-3">
-            {summary && <StatusDashboard summary={summary} />}
-          </div>
-
-          <SourceAttribution />
+        <main className="mt-8 space-y-8">
+          {summary && <StatusDashboard summary={summary} />}
 
           <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
-            <div className="lg:col-span-2 bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
-              <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Observation Timeline</h2>
-              <ObservationTimeline observations={observations} />
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
+                <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Observation Timeline</h2>
+                <ObservationTimeline observations={observations} />
+              </div>
+              <SourceAttribution />
             </div>
+
             <div className="lg:col-span-1 space-y-8">
                 <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
                     <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Key Anomalies</h2>
