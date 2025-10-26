@@ -133,12 +133,55 @@ For detailed source documentation, see [DATA_SOURCES.md](DATA_SOURCES.md)
 └── index.html           # Entry point
 ```
 
+## Deploy to Render
+
+⚠️ **WARNING**: Deploying this app exposes your API key. Only deploy if you understand the security implications.
+
+### Quick Deploy
+
+1. **Fork or push this repository to GitHub**
+
+2. **Sign up for Render**: https://render.com
+
+3. **Create a new Static Site:**
+   - Connect your GitHub repository
+   - Render will automatically detect the `render.yaml` configuration
+
+4. **Set Environment Variable:**
+   - In Render dashboard, add environment variable:
+   - Key: `VITE_API_KEY`
+   - Value: Your OpenAI API key
+   - **Important**: Set this in Render dashboard, NOT in your code!
+
+5. **Deploy:**
+   - Render will automatically build and deploy
+   - Your app will be available at `https://your-app-name.onrender.com`
+
+### Manual Deployment Steps
+
+If not using `render.yaml`:
+
+1. Create New > Static Site
+2. Connect your repository
+3. Configure:
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+4. Add Environment Variable: `VITE_API_KEY`
+5. Deploy
+
+### Post-Deployment
+
+- Monitor your OpenAI usage dashboard for unexpected activity
+- Set up usage limits in OpenAI dashboard to prevent abuse
+- Consider implementing rate limiting or authentication
+
 ## Known Limitations
 
-1. **API Key Security**: See Security Notice above
+1. **API Key Security**: See Security Notice above - client-side API keys are exposed
 2. **CORS Restrictions**: JPL Horizons API cannot be called directly from browser
 3. **No Backend**: All processing happens client-side
 4. **Rate Limiting**: No protection against excessive API calls
+5. **Cost Controls**: No built-in protection against API abuse
 
 ## Contributing
 
