@@ -1,12 +1,26 @@
 services:
+  # Backend API Server (Node.js)
   - type: web
-    name: 3iatlas-interstellar-watch
+    name: 3iatlas-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: VITE_API_KEY
+        sync: false
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: 3iatlas-frontend
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
-      - key: VITE_API_KEY
-        sync: false
+      - key: VITE_USE_BACKEND
+        value: "true"
+      - key: VITE_BACKEND_URL
+        value: https://3iatlas-api.onrender.com
     headers:
       - path: /*
         name: X-Frame-Options
