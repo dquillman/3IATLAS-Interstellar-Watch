@@ -78,35 +78,9 @@ const REAL_3I_ATLAS_DATA = {
     ]
 };
 
-// Function to fetch real-time data from JPL Horizons API
-async function fetchJPLHorizonsData() {
-    const objectDesignation = "3I"; // Interstellar object designation
-    const baseUrl = "https://ssd.jpl.nasa.gov/api/horizons.api";
-
-    // Query for orbital elements
-    const params = new URLSearchParams({
-        format: 'json',
-        COMMAND: `'DES=3I;'`,
-        EPHEM_TYPE: 'ELEMENTS',
-        CENTER: '@sun',
-        START_TIME: '2025-07-01',
-        STOP_TIME: '2025-12-31',
-        STEP_SIZE: '1d'
-    });
-
-    try {
-        const response = await fetch(`${baseUrl}?${params.toString()}`);
-        if (!response.ok) {
-            console.warn("JPL Horizons API request failed, using verified ESA data");
-            return null;
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.warn("Could not fetch JPL data, using verified ESA data:", error);
-        return null;
-    }
-}
+// NOTE: JPL Horizons API cannot be called directly from browser due to CORS restrictions
+// For production, this would require a backend proxy server
+// Currently using verified ESA observational data which is sufficient for mission briefings
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -200,14 +174,8 @@ const responseSchema = {
 };
 
 export const fetchData = async (): Promise<{ summaryData: SummaryData; observationData: Observation[]; anomalyData: Anomaly[]; futureObservationData: FutureObservation[] }> => {
-    // Attempt to fetch real-time data from JPL Horizons
-    const jplData = await fetchJPLHorizonsData();
-
-    // Combine verified ESA data with any JPL data received
-    const realData = {
-        ...REAL_3I_ATLAS_DATA,
-        jpl_horizons_data: jplData || "Not available - using verified ESA observational data"
-    };
+    // Use verified ESA observational data
+    const realData = REAL_3I_ATLAS_DATA;
 
     const prompt = `
         You are the primary analysis AI for the 'Interstellar Watch' program. Your task is to provide a real-time analysis and mission briefing for the interstellar object 3I/ATLAS based STRICTLY on verified real-world data from official sources.
@@ -309,6 +277,28 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
         return parsedResponse;
     } catch (error) {
         console.error("Error calling OpenAI API:", error);
-        throw new Error("Failed to generate mission briefing with AI.");
+
+        // Handle specific OpenAI API errors
+        if (error instanceof OpenAI.APIError) {
+            if (error.status === 401) {
+                throw new Error("Invalid API key. Please check your VITE_API_KEY in .env.local");
+            } else if (error.status === 429) {
+                throw new Error("Rate limit exceeded. Please try again in a few moments.");
+            } else if (error.status === 500 || error.status === 503) {
+                throw new Error("OpenAI service temporarily unavailable. Please try again later.");
+            } else if (error.status === 400) {
+                throw new Error("Invalid request to OpenAI API. Please contact support.");
+            }
+        }
+
+        // Handle network errors
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error("Network error. Please check your internet connection.");
+        }
+
+        // Generic error fallback
+        throw new Error(
+            `Failed to generate mission briefing: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
     }
 };

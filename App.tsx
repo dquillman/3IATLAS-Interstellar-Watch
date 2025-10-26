@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SummaryData, Observation, Anomaly, FutureObservation } from './types';
 import { fetchData } from './services/dataService';
 import Header from './components/Header';
@@ -8,6 +8,8 @@ import AnomalyWatchList from './components/AnomalyWatchList';
 import Footer from './components/Footer';
 import SourceAttribution from './components/SourceAttribution';
 import FutureObservations from './components/FutureObservations';
+import InterstellarComparison from './components/InterstellarComparison';
+import { jsPDF } from 'jspdf';
 
 const App: React.FC = () => {
   const [summary, setSummary] = useState<SummaryData | null>(null);
@@ -17,8 +19,10 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextRefreshIn, setNextRefreshIn] = useState<number>(3600); // 60 minutes in seconds
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
       try {
         const { summaryData, observationData, anomalyData, futureObservationData } = await fetchData();
         setSummary(summaryData);
@@ -30,22 +34,40 @@ const App: React.FC = () => {
         setError('Failed to receive telemetry. Please refresh to try again.');
         console.error(err);
       }
-  };
+  }, []);
   
   useEffect(() => {
     const initialLoad = async () => {
       setIsLoading(true);
       await loadData();
       setIsLoading(false);
+      setNextRefreshIn(3600); // Reset timer after load
     }
     initialLoad();
   }, []);
 
-  const handleRequestUpdate = async () => {
+  // Auto-refresh timer
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+
+    const interval = setInterval(() => {
+      setNextRefreshIn((prev) => {
+        if (prev <= 1) {
+          handleRequestUpdate();
+          return 3600; // Reset to 60 minutes
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [autoRefreshEnabled, handleRequestUpdate]);
+
+  const handleRequestUpdate = useCallback(async () => {
     setIsUpdating(true);
     await loadData();
     setIsUpdating(false);
-  };
+  }, [loadData]);
 
   const handleExportData = () => {
     if (!summary || !observations || !anomalies || !futureObservations) {
@@ -53,26 +75,64 @@ const App: React.FC = () => {
       return;
     }
 
-    const dataToExport = {
-      summary,
-      observations,
-      anomalies,
-      futureObservations,
-      exportedAt: new Date().toISOString(),
-    };
+    const doc = new jsPDF();
+    let yPos = 20;
 
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify(dataToExport, null, 2)
-    )}`;
-    
-    const link = document.createElement("a");
-    link.href = jsonString;
+    // Title
+    doc.setFontSize(20);
+    doc.text('3I/ATLAS Mission Briefing', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Timestamp
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Summary Section
+    doc.setFontSize(14);
+    doc.text('Mission Summary', 20, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.text(`Phase: ${summary.currentPhase}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Threat Level: ${summary.threatLevel}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Threat Reason: ${doc.splitTextToSize(summary.threatLevelReason, 170).join(' ')}`, 20, yPos);
+    yPos += 12;
+    doc.text(`Assessment: ${doc.splitTextToSize(summary.assessment, 170).join(' ')}`, 20, yPos);
+    yPos += 15;
+
+    // Observations
+    doc.setFontSize(14);
+    doc.text('Observation Timeline', 20, yPos);
+    yPos += 8;
+    doc.setFontSize(9);
+    observations.forEach(obs => {
+      if (yPos > 270) { doc.addPage(); yPos = 20; }
+      doc.text(`${obs.dateObserved} - ${obs.observatory}`, 20, yPos);
+      yPos += 5;
+      doc.text(`  ${doc.splitTextToSize(obs.keyFinding, 170).join(' ')}`, 20, yPos);
+      yPos += 8;
+    });
+    yPos += 10;
+
+    // Anomalies
+    if (yPos > 250) { doc.addPage(); yPos = 20; }
+    doc.setFontSize(14);
+    doc.text('Key Anomalies', 20, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    anomalies.forEach(anom => {
+      if (yPos > 270) { doc.addPage(); yPos = 20; }
+      doc.text(`${anom.name} (${anom.status})`, 20, yPos);
+      yPos += 5;
+      doc.text(`  ${doc.splitTextToSize(anom.description, 170).join(' ')}`, 20, yPos);
+      yPos += 8;
+    });
+
+    // Save PDF
     const timestamp = new Date().toISOString().replace(/:/g, '-').slice(0, 19);
-    link.download = `3I-ATLAS_Mission_Briefing_${timestamp}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    doc.save(`3I-ATLAS_Mission_Briefing_${timestamp}.pdf`);
   };
 
   if (isLoading) {
@@ -100,15 +160,20 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-comet-blue-950 font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <Header 
+        <Header
             lastUpdateTimestamp={summary?.lastUpdateTimestamp}
             onRequestUpdate={handleRequestUpdate}
             isUpdating={isUpdating}
             onExportData={handleExportData}
             canExport={!!summary}
+            nextRefreshIn={nextRefreshIn}
+            autoRefreshEnabled={autoRefreshEnabled}
+            onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
         />
         <main className="mt-8 space-y-8">
           {summary && <StatusDashboard summary={summary} />}
+
+          <InterstellarComparison />
 
           <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-8">
