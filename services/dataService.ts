@@ -82,8 +82,19 @@ const REAL_3I_ATLAS_DATA = {
 // For production, this would require a backend proxy server
 // Currently using verified ESA observational data which is sufficient for mission briefings
 
-// Initialize OpenAI
-const openai = new OpenAI({
+// Backend API configuration
+const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+console.log('[DataService] Configuration:', {
+    USE_BACKEND,
+    BACKEND_URL,
+    hasApiKey: !!import.meta.env.VITE_API_KEY,
+    rawUseBackend: import.meta.env.VITE_USE_BACKEND
+});
+
+// Initialize OpenAI (only if not using backend)
+const openai = USE_BACKEND ? null : new OpenAI({
     apiKey: import.meta.env.VITE_API_KEY, // Vite requires VITE_ prefix for env vars
     dangerouslyAllowBrowser: true // Required for client-side usage in Vite
 });
@@ -177,7 +188,44 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
     // Use verified ESA observational data
     const realData = REAL_3I_ATLAS_DATA;
 
-    const prompt = `
+    // If using backend, call backend API instead of OpenAI directly
+    if (USE_BACKEND) {
+        try {
+            const prompt = buildPrompt(realData);
+
+            const response = await fetch(`${BACKEND_URL}/api/mission-briefing`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    realData,
+                    prompt,
+                    responseSchema
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Error calling backend API:", error);
+            throw new Error(
+                `Failed to fetch telemetry: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+        }
+    }
+
+    // Original client-side OpenAI call
+    const prompt = buildPrompt(realData);
+    return await callOpenAI(prompt);
+};
+
+function buildPrompt(realData: typeof REAL_3I_ATLAS_DATA): string {
+    return `
         You are the primary analysis AI for the 'Interstellar Watch' program. Your task is to provide a real-time analysis and mission briefing for the interstellar object 3I/ATLAS based STRICTLY on verified real-world data from official sources.
 
         CRITICAL INSTRUCTIONS:
@@ -243,6 +291,12 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
 
         Remember: This is REAL data about a REAL interstellar object. Accuracy and factual integrity are paramount.
     `;
+}
+
+async function callOpenAI(prompt: string): Promise<{ summaryData: SummaryData; observationData: Observation[]; anomalyData: Anomaly[]; futureObservationData: FutureObservation[] }> {
+    if (!openai) {
+        throw new Error("OpenAI client not initialized. Backend mode is enabled.");
+    }
 
     try {
         const response = await openai.chat.completions.create({
@@ -301,4 +355,4 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
             `Failed to generate mission briefing: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
     }
-};
+}

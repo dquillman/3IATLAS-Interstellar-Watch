@@ -24,27 +24,50 @@ const App: React.FC = () => {
 
   const loadData = useCallback(async () => {
       try {
+        console.log('[App] Starting data fetch...');
         const { summaryData, observationData, anomalyData, futureObservationData } = await fetchData();
+        console.log('[App] Data fetched successfully');
         setSummary(summaryData);
         setObservations(observationData);
         setAnomalies(anomalyData);
         setFutureObservations(futureObservationData);
         setError(null);
       } catch (err) {
-        setError('Failed to receive telemetry. Please refresh to try again.');
-        console.error(err);
+        console.error('[App] Error loading data:', err);
+        setError(`Failed to receive telemetry: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
   }, []);
   
+  const handleRequestUpdate = useCallback(async () => {
+    setIsUpdating(true);
+    await loadData();
+    setIsUpdating(false);
+  }, [loadData]);
+
   useEffect(() => {
     const initialLoad = async () => {
       setIsLoading(true);
-      await loadData();
-      setIsLoading(false);
-      setNextRefreshIn(3600); // Reset timer after load
+
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.error('[App] Load timeout after 30 seconds');
+        setIsLoading(false);
+        setError('Request timed out. The API is taking too long to respond. Please try again.');
+      }, 30000);
+
+      try {
+        await loadData();
+        clearTimeout(timeout);
+      } catch (err) {
+        clearTimeout(timeout);
+        console.error('[App] Initial load error:', err);
+      } finally {
+        setIsLoading(false);
+        setNextRefreshIn(3600); // Reset timer after load
+      }
     }
     initialLoad();
-  }, []);
+  }, [loadData]);
 
   // Auto-refresh timer
   useEffect(() => {
@@ -62,12 +85,6 @@ const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [autoRefreshEnabled, handleRequestUpdate]);
-
-  const handleRequestUpdate = useCallback(async () => {
-    setIsUpdating(true);
-    await loadData();
-    setIsUpdating(false);
-  }, [loadData]);
 
   const handleExportData = () => {
     if (!summary || !observations || !anomalies || !futureObservations) {
