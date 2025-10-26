@@ -1,0 +1,5 @@
+{
+  "name": "3I/ATLAS Interstellar Watch",
+  "description": "Live threat analysis and mission status for interstellar object 3I/ATLAS, powered by the Interstellar Watch Program.",
+  "requestFramePermissions": []
+}
