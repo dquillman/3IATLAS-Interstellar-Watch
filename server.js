@@ -109,11 +109,11 @@ app.post('/api/mission-briefing', async (req, res) => {
 });
 
 // Catch-all route to serve index.html for client-side routing
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 3I/ATLAS Backend API running on http://localhost:${PORT}`);
     console.log(`✓ Health check: http://localhost:${PORT}/api/health`);
     console.log(`✓ Mission briefing: POST http://localhost:${PORT}/api/mission-briefing`);
