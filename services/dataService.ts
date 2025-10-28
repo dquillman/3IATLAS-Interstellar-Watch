@@ -84,7 +84,8 @@ const REAL_3I_ATLAS_DATA = {
 
 // Backend API configuration
 const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+// Use environment variable if set, otherwise use window.location.origin in browser, fallback to localhost
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
 console.log('[DataService] Configuration:', {
     USE_BACKEND,
