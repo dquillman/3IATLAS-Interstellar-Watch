@@ -3,22 +3,32 @@ import React from 'react';
 const sources = [
   {
     name: 'ESA Planetary Defence',
-    description: 'Primary source for 3I/ATLAS discovery and tracking data. Coordinating global observation network including telescopes in Hawaii, Chile, and Australia',
+    description: 'Primary coordination source. Manages global observation network including telescopes in Hawaii, Chile, and Australia tracking 3I/ATLAS',
     url: 'https://www.esa.int/Space_Safety/Planetary_Defence'
   },
   {
     name: 'NASA JPL Horizons',
-    description: 'Live API providing precise orbital parameters, ephemeris data, and trajectory calculations for tracking the object\'s movement through the solar system',
+    description: 'Live API providing precise orbital parameters, ephemeris data, and trajectory calculations updated in real-time',
     url: 'https://ssd.jpl.nasa.gov/horizons/'
   },
   {
     name: 'ATLAS Survey',
-    description: 'Discovery telescope network (Río Hurtado, Chile) that first detected 3I/ATLAS on July 1, 2025. Continues monitoring brightness and position',
+    description: 'Discovery site (Río Hurtado, Chile) that first detected 3I/ATLAS on July 1, 2025. Provides ongoing photometry and position data',
     url: 'https://fallingstar.com/'
   },
   {
+    name: 'Hubble Space Telescope',
+    description: 'Captured detailed images on July 21, 2025 showing dust coma and providing size estimates (5.6 km max diameter). Scheduled for UV spectroscopy in November 2025',
+    url: 'https://hubblesite.org/'
+  },
+  {
+    name: 'James Webb Space Telescope',
+    description: 'First observations August 6, 2025 revealed unusual CO₂-rich composition. Next observations scheduled for December 2025 post-perihelion',
+    url: 'https://webbtelescope.org/'
+  },
+  {
     name: 'Minor Planet Center',
-    description: 'Central repository aggregating and verifying all observations worldwide, coordinating data from the global telescope network',
+    description: 'Central repository aggregating and verifying all observations worldwide from the global telescope network',
     url: 'https://www.minorplanetcenter.net/'
   },
 ];

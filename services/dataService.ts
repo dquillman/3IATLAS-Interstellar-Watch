@@ -327,11 +327,13 @@ function buildPrompt(realData: any): string {
             *   Sort by 'dateObserved' chronologically
 
         3.  **anomalyData**:
-            *   Based on the real data, include:
-            *   'Active Coma' with status 'Normal' - Expected behavior for a comet approaching the Sun
-            *   'Hyperbolic Trajectory' with status 'Confirmed' - Definitively interstellar origin
-            *   'Size Estimation' with status 'Watch' - Up to 20km diameter, ongoing refinement of measurements
-            *   DO NOT invent fictitious anomalies
+            *   Based ONLY on verified observations from NASA, ESA, Hubble, JWST, and MPC, include these REAL anomalies:
+            *   'Hyperbolic Trajectory' with status 'Confirmed' - Highly eccentric hyperbolic orbit (e ~ 6.0) confirmed by Minor Planet Center. Definitively interstellar origin
+            *   'Unusual Tail Geometry' with status 'Confirmed' - Hubble and JWST observations show dust plume in sunward direction (anti-solar), inconsistent with typical radiation pressure tail. JWST reveals CO₂ dominated coma with enhanced sunward outgassing
+            *   'Teardrop Dust Cocoon' with status 'Confirmed' - Hubble captured teardrop-shaped cocoon of dust coming off nucleus on July 21, 2025
+            *   'Size Uncertainty' with status 'Watch' - Hubble estimates upper limit 5.6 km diameter, could be as small as 320 meters. Nucleus currently obscured by coma
+            *   'Ancient Origin' with status 'Under Investigation' - ESA trajectory analysis suggests possibly 3 billion years older than Solar System itself
+            *   DO NOT invent additional anomalies beyond these verified observations from official sources
             *   Give each a unique ID starting from 1
 
         4.  **futureObservationData**:
