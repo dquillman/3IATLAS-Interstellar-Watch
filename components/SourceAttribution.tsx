@@ -2,33 +2,23 @@ import React from 'react';
 
 const sources = [
   {
+    name: 'ESA Planetary Defence',
+    description: 'Primary source for 3I/ATLAS discovery and tracking data. Coordinating global observation network including telescopes in Hawaii, Chile, and Australia',
+    url: 'https://www.esa.int/Space_Safety/Planetary_Defence'
+  },
+  {
     name: 'NASA JPL Horizons',
-    description: 'Provides precise orbital parameters (trajectory path, speed, position) and ephemeris data (predicted positions over time) for tracking the object\'s movement through space',
-    url: 'https://ssd.jpl.nasa.gov/'
+    description: 'Live API providing precise orbital parameters, ephemeris data, and trajectory calculations for tracking the object\'s movement through the solar system',
+    url: 'https://ssd.jpl.nasa.gov/horizons/'
   },
   {
     name: 'ATLAS Survey',
-    description: 'Discovered 3I/ATLAS on July 1, 2025. Provides photometry data measuring the object\'s brightness and light variations to determine size and composition',
+    description: 'Discovery telescope network (Río Hurtado, Chile) that first detected 3I/ATLAS on July 1, 2025. Continues monitoring brightness and position',
     url: 'https://fallingstar.com/'
   },
   {
-    name: 'ESA Gaia',
-    description: 'Confirms precise position and motion using astrometry - the measurement of celestial object positions and movements with extreme accuracy to verify interstellar origin',
-    url: 'https://www.esa.int/Science_Exploration/Space_Science/Gaia'
-  },
-  {
-    name: 'Hubble (HST)',
-    description: 'Analyzes light curves (brightness changes over time) and performs spectroscopy to identify chemical composition by studying how the object absorbs and reflects different wavelengths of light',
-    url: 'https://hubblesite.org/'
-  },
-  {
-    name: 'James Webb (JWST)',
-    description: 'Uses infrared sensors to detect heat signatures and analyze molecular composition, revealing materials and temperatures not visible in optical light',
-    url: 'https://webbtelescope.org/'
-  },
-  {
     name: 'Minor Planet Center',
-    description: 'Central repository collecting and verifying all observations worldwide, coordinating data from global telescope networks to build comprehensive tracking record',
+    description: 'Central repository aggregating and verifying all observations worldwide, coordinating data from the global telescope network',
     url: 'https://www.minorplanetcenter.net/'
   },
 ];
