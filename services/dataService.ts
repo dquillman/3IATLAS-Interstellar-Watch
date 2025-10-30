@@ -337,12 +337,12 @@ function buildPrompt(realData: any): string {
             *   Give each a unique ID starting from 1
 
         4.  **futureObservationData**:
-            *   Create realistic scheduled observations based on the trajectory:
-            *   Pre-closest approach observations (before late October 2025)
-            *   Post-conjunction observations (after early December 2025)
-            *   Long-term monitoring as it exits the solar system
-            *   Use real telescopes: Hubble, James Webb, ATLAS, ESA facilities
+            *   ONLY include officially announced observations from NASA/ESA sources:
+            *   ESA Juice mission: November 2025 observations with cameras, spectrometers, and particle sensor. Data expected February 2026. Status: 'Scheduled'
+            *   NASA states multiple assets (Hubble, Webb, TESS, Swift, SPHEREx, Mars rovers, etc.) are "planning to gather observations" but NO specific dates have been officially published. DO NOT invent observation windows.
+            *   If no specific observation schedule is officially published, return EMPTY array or use generic "Ongoing Monitoring" with status 'Planned' and note "Specific observation schedules not yet published by NASA/ESA"
             *   Give each a unique ID starting from 1
+            *   CRITICAL: DO NOT fabricate observation windows or dates. Only use officially announced information.
 
         Remember: This is REAL data about a REAL interstellar object. Accuracy and factual integrity are paramount.
     `;
