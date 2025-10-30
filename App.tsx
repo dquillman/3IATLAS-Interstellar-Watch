@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import SourceAttribution from './components/SourceAttribution';
 import FutureObservations from './components/FutureObservations';
 import InterstellarComparison from './components/InterstellarComparison';
+import SolarSystemMap from './components/SolarSystemMap';
 import { jsPDF } from 'jspdf';
 
 const App: React.FC = () => {
@@ -198,6 +199,7 @@ const App: React.FC = () => {
                 <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Observation Timeline</h2>
                 <ObservationTimeline observations={observations} />
               </div>
+              <SolarSystemMap />
               <SourceAttribution />
             </div>
 

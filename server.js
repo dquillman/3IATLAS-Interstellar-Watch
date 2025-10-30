@@ -123,6 +123,94 @@ app.get('/api/jpl-horizons/:objectId', async (req, res) => {
     }
 });
 
+// JPL Horizons API - Get heliocentric positions for solar system map
+app.get('/api/solar-system-positions', async (req, res) => {
+    try {
+        const cacheKey = 'solar-system-positions';
+
+        // Check cache first
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+            return res.json({
+                ...cachedData,
+                cached: true
+            });
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+
+        // Fetch positions for Earth, Mars, and 3I/ATLAS
+        const objects = [
+            { id: 'Earth', code: '399' },
+            { id: 'Mars', code: '499' },
+            { id: '3I/ATLAS', code: 'C/2025 N1' }
+        ];
+
+        const positions = {};
+
+        for (const obj of objects) {
+            const params = new URLSearchParams({
+                format: 'text',
+                COMMAND: obj.code,
+                OBJ_DATA: 'NO',
+                MAKE_EPHEM: 'YES',
+                EPHEM_TYPE: 'VECTORS',
+                CENTER: '500@10', // Sun center
+                START_TIME: dateStr,
+                STOP_TIME: dateStr,
+                STEP_SIZE: '1d',
+                VEC_TABLE: '2', // Position and velocity
+                OUT_UNITS: 'AU-D', // AU and days
+                CSV_FORMAT: 'YES',
+                VEC_LABELS: 'YES'
+            });
+
+            const url = `https://ssd.jpl.nasa.gov/api/horizons.api?${params.toString()}`;
+            console.log(`[Solar System] Fetching ${obj.id} position...`);
+
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.text();
+
+                // Parse the vector data (X, Y, Z coordinates)
+                const lines = data.split('\n');
+                const dataLine = lines.find(line => line.trim().startsWith(dateStr.replace(/-/g, '-')));
+
+                if (dataLine) {
+                    const parts = dataLine.split(',').map(s => s.trim());
+                    if (parts.length >= 6) {
+                        positions[obj.id] = {
+                            x: parseFloat(parts[2]),
+                            y: parseFloat(parts[3]),
+                            z: parseFloat(parts[4]),
+                            date: dateStr
+                        };
+                    }
+                }
+            }
+        }
+
+        const result = {
+            source: 'NASA JPL Horizons',
+            timestamp: now.toISOString(),
+            positions,
+            cached: false
+        };
+
+        // Cache the result
+        setCachedData(cacheKey, result);
+
+        res.json(result);
+
+    } catch (error) {
+        console.error('[Solar System] Error:', error);
+        res.status(500).json({
+            error: `Failed to fetch solar system positions: ${error instanceof Error ? error.message : 'Unknown error'}`
+        });
+    }
+});
+
 // Minor Planet Center API endpoint - Fetch live observations
 app.get('/api/mpc-observations/:designation', async (req, res) => {
     try {
