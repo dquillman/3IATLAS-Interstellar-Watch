@@ -7,6 +7,14 @@ interface Position {
   date: string;
 }
 
+interface TrajectoryPoint {
+  date: string;
+  x: number;
+  y: number;
+  z: number;
+  dayFromPerihelion: number;
+}
+
 interface SolarSystemData {
   source: string;
   timestamp: string;
@@ -15,6 +23,7 @@ interface SolarSystemData {
     Mars?: Position;
     '3I/ATLAS'?: Position;
   };
+  trajectory?: TrajectoryPoint[];
   cached?: boolean;
 }
 
@@ -124,6 +133,79 @@ const SolarSystemMap: React.FC = () => {
             opacity="0.3"
           />
 
+          {/* 3I/ATLAS Trajectory Path */}
+          {data.trajectory && data.trajectory.length > 1 && (
+            <>
+              {/* Draw the hyperbolic trajectory as a path */}
+              <path
+                d={data.trajectory.map((point, i) => {
+                  const svg = toSVG(point.x, point.y);
+                  return `${i === 0 ? 'M' : 'L'} ${svg.x} ${svg.y}`;
+                }).join(' ')}
+                fill="none"
+                stroke="#00ff88"
+                strokeWidth="1.5"
+                strokeDasharray="4,2"
+                opacity="0.5"
+              >
+                <title>3I/ATLAS Hyperbolic Trajectory</title>
+              </path>
+
+              {/* Mark perihelion point */}
+              {(() => {
+                const perihelionPoint = data.trajectory.find(p => p.dayFromPerihelion === 0);
+                if (perihelionPoint) {
+                  const svg = toSVG(perihelionPoint.x, perihelionPoint.y);
+                  return (
+                    <>
+                      <circle
+                        cx={svg.x}
+                        cy={svg.y}
+                        r="3"
+                        fill="#ffaa00"
+                        stroke="#ffaa00"
+                        strokeWidth="1"
+                      >
+                        <title>Perihelion: {perihelionPoint.date} (closest to Sun)</title>
+                      </circle>
+                      <text
+                        x={svg.x + 10}
+                        y={svg.y}
+                        fontSize="8"
+                        fill="#ffaa00"
+                        opacity="0.8"
+                      >
+                        Perihelion
+                      </text>
+                    </>
+                  );
+                }
+              })()}
+
+              {/* Direction arrow at the end of trajectory */}
+              {(() => {
+                const lastPoint = data.trajectory[data.trajectory.length - 1];
+                const prevPoint = data.trajectory[data.trajectory.length - 2];
+                if (lastPoint && prevPoint) {
+                  const svg1 = toSVG(prevPoint.x, prevPoint.y);
+                  const svg2 = toSVG(lastPoint.x, lastPoint.y);
+                  const angle = Math.atan2(svg2.y - svg1.y, svg2.x - svg1.x);
+                  return (
+                    <g transform={`translate(${svg2.x}, ${svg2.y}) rotate(${angle * 180 / Math.PI})`}>
+                      <path
+                        d="M 0 0 L -8 -4 L -8 4 Z"
+                        fill="#00ff88"
+                        opacity="0.7"
+                      >
+                        <title>Direction: Leaving solar system</title>
+                      </path>
+                    </g>
+                  );
+                }
+              })()}
+            </>
+          )}
+
           {/* Sun */}
           <circle cx={center} cy={center} r="8" fill="#FDB813">
             <title>Sun</title>
@@ -152,6 +234,25 @@ const SolarSystemMap: React.FC = () => {
               >
                 Earth
               </text>
+              {/* Earth orbital direction arrow */}
+              {(() => {
+                // Calculate velocity vector (perpendicular to position, counterclockwise)
+                const angle = Math.atan2(earthPos.y, earthPos.x) + Math.PI / 2;
+                const arrowDist = 15;
+                const arrowX = toSVG(earthPos.x, earthPos.y).x + Math.cos(angle) * arrowDist;
+                const arrowY = toSVG(earthPos.x, earthPos.y).y - Math.sin(angle) * arrowDist;
+                return (
+                  <g transform={`translate(${arrowX}, ${arrowY}) rotate(${angle * 180 / Math.PI})`}>
+                    <path
+                      d="M 0 0 L -6 -3 L -6 3 Z"
+                      fill="#4a9eff"
+                      opacity="0.7"
+                    >
+                      <title>Earth orbital direction</title>
+                    </path>
+                  </g>
+                );
+              })()}
             </>
           )}
 
@@ -175,6 +276,25 @@ const SolarSystemMap: React.FC = () => {
               >
                 Mars
               </text>
+              {/* Mars orbital direction arrow */}
+              {(() => {
+                // Calculate velocity vector (perpendicular to position, counterclockwise)
+                const angle = Math.atan2(marsPos.y, marsPos.x) + Math.PI / 2;
+                const arrowDist = 15;
+                const arrowX = toSVG(marsPos.x, marsPos.y).x + Math.cos(angle) * arrowDist;
+                const arrowY = toSVG(marsPos.x, marsPos.y).y - Math.sin(angle) * arrowDist;
+                return (
+                  <g transform={`translate(${arrowX}, ${arrowY}) rotate(${angle * 180 / Math.PI})`}>
+                    <path
+                      d="M 0 0 L -6 -3 L -6 3 Z"
+                      fill="#ff6b4a"
+                      opacity="0.7"
+                    >
+                      <title>Mars orbital direction</title>
+                    </path>
+                  </g>
+                );
+              })()}
             </>
           )}
 
@@ -229,6 +349,9 @@ const SolarSystemMap: React.FC = () => {
         <p>• 1 AU = 149.6 million km (Earth-Sun distance)</p>
         {cometPos && (
           <p>• 3I/ATLAS distance from Sun: {Math.sqrt(cometPos.x ** 2 + cometPos.y ** 2 + cometPos.z ** 2).toFixed(2)} AU</p>
+        )}
+        {data.trajectory && (
+          <p className="text-green-400">• <span className="text-comet-blue-400">Green dashed line:</span> Hyperbolic trajectory (±60 days from perihelion)</p>
         )}
       </div>
     </div>
