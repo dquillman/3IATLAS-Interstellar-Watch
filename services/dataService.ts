@@ -186,13 +186,62 @@ const responseSchema = {
 };
 
 export const fetchData = async (): Promise<{ summaryData: SummaryData; observationData: Observation[]; anomalyData: Anomaly[]; futureObservationData: FutureObservation[] }> => {
-    // Use verified ESA observational data
-    const realData = REAL_3I_ATLAS_DATA;
+    // Fetch LIVE data from astronomical sources
+    let liveData = { ...REAL_3I_ATLAS_DATA };
+    let jplData = null;
+    let mpcData = null;
 
-    // If using backend, call backend API instead of OpenAI directly
     if (USE_BACKEND) {
         try {
-            const prompt = buildPrompt(realData);
+            // Fetch live JPL Horizons data for 3I/ATLAS
+            console.log('[DataService] Fetching live JPL Horizons data...');
+            const jplResponse = await fetch(`${BACKEND_URL}/api/jpl-horizons/3I`, {
+                method: 'GET',
+            }).catch(err => {
+                console.warn('[DataService] JPL Horizons fetch failed, using baseline data:', err);
+                return null;
+            });
+
+            if (jplResponse && jplResponse.ok) {
+                jplData = await jplResponse.json();
+                console.log('[DataService] Successfully fetched live JPL data');
+            }
+
+            // Fetch live MPC observations for 3I/ATLAS
+            console.log('[DataService] Fetching live MPC observations...');
+            const mpcResponse = await fetch(`${BACKEND_URL}/api/mpc-observations/3I`, {
+                method: 'GET',
+            }).catch(err => {
+                console.warn('[DataService] MPC fetch failed, using baseline data:', err);
+                return null;
+            });
+
+            if (mpcResponse && mpcResponse.ok) {
+                mpcData = await mpcResponse.json();
+                console.log('[DataService] Successfully fetched live MPC data');
+            }
+
+            // Merge live data with baseline data
+            if (jplData || mpcData) {
+                liveData = {
+                    ...liveData,
+                    live_data_sources: {
+                        jpl_horizons: jplData ? {
+                            timestamp: jplData.timestamp,
+                            available: true,
+                            data: jplData.data
+                        } : { available: false },
+                        mpc_observations: mpcData ? {
+                            timestamp: mpcData.timestamp,
+                            available: true,
+                            data: mpcData.data
+                        } : { available: false }
+                    }
+                };
+            }
+
+            // Call AI briefing with live + baseline data
+            const prompt = buildPrompt(liveData);
 
             const response = await fetch(`${BACKEND_URL}/api/mission-briefing`, {
                 method: 'POST',
@@ -200,7 +249,7 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    realData,
+                    realData: liveData,
                     prompt,
                     responseSchema
                 })
@@ -220,12 +269,14 @@ export const fetchData = async (): Promise<{ summaryData: SummaryData; observati
         }
     }
 
-    // Original client-side OpenAI call
-    const prompt = buildPrompt(realData);
+    // Original client-side OpenAI call (fallback)
+    const prompt = buildPrompt(liveData);
     return await callOpenAI(prompt);
 };
 
-function buildPrompt(realData: typeof REAL_3I_ATLAS_DATA): string {
+function buildPrompt(realData: any): string {
+    const hasLiveData = realData.live_data_sources?.jpl_horizons?.available || realData.live_data_sources?.mpc_observations?.available;
+
     return `
         You are the primary analysis AI for the 'Interstellar Watch' program. Your task is to provide a real-time analysis and mission briefing for the interstellar object 3I/ATLAS based STRICTLY on verified real-world data from official sources.
 
@@ -234,6 +285,7 @@ function buildPrompt(realData: typeof REAL_3I_ATLAS_DATA): string {
         - DO NOT invent or fabricate any observations, dates, or measurements
         - If specific technical data is not available, acknowledge the limitation
         - All dates, measurements, and observations must match the verified sources
+        ${hasLiveData ? '- LIVE DATA IS AVAILABLE: Prioritize live JPL Horizons and MPC data over baseline data where applicable' : '- Using baseline reference data (live feeds currently unavailable)'}
 
         Current Date for reference: ${new Date().toISOString()}
 

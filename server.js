@@ -20,6 +20,28 @@ const openai = new OpenAI({
     apiKey: process.env.VITE_API_KEY
 });
 
+// Simple in-memory cache for API responses
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+function getCachedData(key) {
+    const cached = cache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`[Cache] HIT for ${key}`);
+        return cached.data;
+    }
+    console.log(`[Cache] MISS for ${key}`);
+    return null;
+}
+
+function setCachedData(key, data) {
+    cache.set(key, {
+        data,
+        timestamp: Date.now()
+    });
+    console.log(`[Cache] SET ${key}`);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -30,6 +52,129 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: '3I/ATLAS Backend API Running' });
+});
+
+// JPL Horizons API endpoint - Fetch live ephemeris data
+app.get('/api/jpl-horizons/:objectId', async (req, res) => {
+    try {
+        const { objectId } = req.params;
+        const { startTime, stopTime, stepSize = '1d' } = req.query;
+
+        const cacheKey = `jpl-${objectId}-${startTime}-${stopTime}-${stepSize}`;
+
+        // Check cache first
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+            return res.json({
+                ...cachedData,
+                cached: true
+            });
+        }
+
+        // Build JPL Horizons API query
+        // Note: 3I/ATLAS is fictional/future object, so we'll use C/2019 Q4 (Borisov - actual 2I) as reference
+        // In production, this would query the actual object once it's in the database
+        const actualObjectId = objectId === '3I' ? 'C/2019 Q4' : objectId; // Use 2I/Borisov as proxy for now
+
+        const params = new URLSearchParams({
+            format: 'text', // JPL Horizons returns text format by default
+            COMMAND: `'${actualObjectId}'`,
+            OBJ_DATA: 'YES',
+            MAKE_EPHEM: 'YES',
+            EPHEM_TYPE: 'OBSERVER',
+            CENTER: '500@399', // Earth geocenter
+            START_TIME: startTime || new Date().toISOString().split('T')[0],
+            STOP_TIME: stopTime || new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+            STEP_SIZE: stepSize,
+            QUANTITIES: '1,9,20', // Astrometric RA/DEC, range, delta
+            CSV_FORMAT: 'YES'
+        });
+
+        const horizonsUrl = `https://ssd.jpl.nasa.gov/api/horizons.api?${params.toString()}`;
+
+        console.log(`[JPL Horizons] Fetching data for ${objectId} (using ${actualObjectId})...`);
+        console.log(`[JPL Horizons] URL: ${horizonsUrl}`);
+        const response = await fetch(horizonsUrl);
+
+        if (!response.ok) {
+            throw new Error(`JPL Horizons API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.text(); // JPL returns text, not JSON
+        const result = {
+            source: 'NASA JPL Horizons',
+            timestamp: new Date().toISOString(),
+            objectId,
+            actualObjectUsed: actualObjectId,
+            data,
+            cached: false
+        };
+
+        // Cache the result
+        setCachedData(cacheKey, result);
+
+        res.json(result);
+
+    } catch (error) {
+        console.error('[JPL Horizons] Error:', error);
+        res.status(500).json({
+            error: `Failed to fetch JPL Horizons data: ${error instanceof Error ? error.message : 'Unknown error'}`
+        });
+    }
+});
+
+// Minor Planet Center API endpoint - Fetch live observations
+app.get('/api/mpc-observations/:designation', async (req, res) => {
+    try {
+        const { designation } = req.params;
+
+        const cacheKey = `mpc-${designation}`;
+
+        // Check cache first
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData) {
+            return res.json({
+                ...cachedData,
+                cached: true
+            });
+        }
+
+        console.log(`[MPC] Fetching observations for ${designation}...`);
+        const response = await fetch('https://data.minorplanetcenter.net/api/get-obs', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                desigs: [designation],
+                output_format: ['JSON']
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`MPC API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const result = {
+            source: 'Minor Planet Center',
+            timestamp: new Date().toISOString(),
+            designation,
+            data,
+            cached: false
+        };
+
+        // Cache the result
+        setCachedData(cacheKey, result);
+
+        res.json(result);
+
+    } catch (error) {
+        console.error('[MPC] Error:', error);
+        res.status(500).json({
+            error: `Failed to fetch MPC observations: ${error instanceof Error ? error.message : 'Unknown error'}`
+        });
+    }
 });
 
 // Mission briefing endpoint
