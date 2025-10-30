@@ -1,0 +1,32 @@
+# Manual Deployment Steps for Google Cloud Run
+# Copy and paste these commands one at a time into PowerShell or Command Prompt
+
+# Step 1: Login to Google Cloud
+gcloud auth login
+
+# Step 2: Set your project ID (you can change this name if you want)
+gcloud config set project 3iatlas-app
+
+# Step 3: Create the project (if it doesn't exist)
+gcloud projects create 3iatlas-app --name="3I/ATLAS Interstellar Watch"
+
+# Step 4: Link billing account (REQUIRED - visit this URL in browser)
+# https://console.cloud.google.com/billing/linkedaccount?project=3iatlas-app
+# Click the project, then select a billing account
+
+# Step 5: Enable required APIs
+gcloud services enable run.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable secretmanager.googleapis.com
+
+# Step 6: Create secret for OpenAI API key
+# Replace YOUR_API_KEY_HERE with your actual OpenAI API key
+echo YOUR_API_KEY_HERE | gcloud secrets create OPENAI_API_KEY --data-file=-
+
+# Step 7: Deploy to Cloud Run (this takes 5-10 minutes)
+cd G:\Users\daveq\3iatlas
+
+gcloud run deploy 3iatlas-app --source . --platform managed --region us-central1 --allow-unauthenticated --set-env-vars VITE_USE_BACKEND=true --set-secrets VITE_API_KEY=OPENAI_API_KEY:latest --memory 512Mi --cpu 1 --timeout 300 --max-instances 10
+
+# Step 8: Get your app URL
+gcloud run services describe 3iatlas-app --region us-central1 --format "value(status.url)"
