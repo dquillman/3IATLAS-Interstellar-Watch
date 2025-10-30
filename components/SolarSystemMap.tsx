@@ -234,21 +234,40 @@ const SolarSystemMap: React.FC = () => {
               >
                 Earth
               </text>
-              {/* Earth orbital direction arrow */}
+              {/* Earth orbital direction arrow with tail */}
               {(() => {
-                // Calculate velocity vector (perpendicular to position, counterclockwise)
-                const angle = Math.atan2(earthPos.y, earthPos.x) + Math.PI / 2;
-                const arrowDist = 15;
-                const arrowX = toSVG(earthPos.x, earthPos.y).x + Math.cos(angle) * arrowDist;
-                const arrowY = toSVG(earthPos.x, earthPos.y).y - Math.sin(angle) * arrowDist;
+                // For counterclockwise orbit, velocity is perpendicular to radial direction
+                // radial angle points from Sun to planet
+                const radialAngle = Math.atan2(earthPos.y, earthPos.x);
+                // velocity is 90° ahead of radial (counterclockwise)
+                const velocityAngle = radialAngle + Math.PI / 2;
+
+                // Place arrow near the planet
+                const earthSvg = toSVG(earthPos.x, earthPos.y);
+
+                // Convert velocity angle to SVG coordinates (note: Y is inverted in SVG)
+                // In SVG, positive Y is down, so we need to adjust
+                const svgVelocityAngle = -velocityAngle; // Flip for SVG coordinate system
+
                 return (
-                  <g transform={`translate(${arrowX}, ${arrowY}) rotate(${angle * 180 / Math.PI})`}>
+                  <g transform={`translate(${earthSvg.x + 15}, ${earthSvg.y}) rotate(${svgVelocityAngle * 180 / Math.PI})`}>
+                    {/* Arrow tail line */}
+                    <line
+                      x1="-12"
+                      y1="0"
+                      x2="0"
+                      y2="0"
+                      stroke="#4a9eff"
+                      strokeWidth="1.5"
+                      opacity="0.7"
+                    />
+                    {/* Arrow head */}
                     <path
                       d="M 0 0 L -6 -3 L -6 3 Z"
                       fill="#4a9eff"
                       opacity="0.7"
                     >
-                      <title>Earth orbital direction</title>
+                      <title>Earth orbital direction (counterclockwise)</title>
                     </path>
                   </g>
                 );
@@ -276,21 +295,40 @@ const SolarSystemMap: React.FC = () => {
               >
                 Mars
               </text>
-              {/* Mars orbital direction arrow */}
+              {/* Mars orbital direction arrow with tail */}
               {(() => {
-                // Calculate velocity vector (perpendicular to position, counterclockwise)
-                const angle = Math.atan2(marsPos.y, marsPos.x) + Math.PI / 2;
-                const arrowDist = 15;
-                const arrowX = toSVG(marsPos.x, marsPos.y).x + Math.cos(angle) * arrowDist;
-                const arrowY = toSVG(marsPos.x, marsPos.y).y - Math.sin(angle) * arrowDist;
+                // For counterclockwise orbit, velocity is perpendicular to radial direction
+                // radial angle points from Sun to planet
+                const radialAngle = Math.atan2(marsPos.y, marsPos.x);
+                // velocity is 90° ahead of radial (counterclockwise)
+                const velocityAngle = radialAngle + Math.PI / 2;
+
+                // Place arrow near the planet
+                const marsSvg = toSVG(marsPos.x, marsPos.y);
+
+                // Convert velocity angle to SVG coordinates (note: Y is inverted in SVG)
+                // In SVG, positive Y is down, so we need to adjust
+                const svgVelocityAngle = -velocityAngle; // Flip for SVG coordinate system
+
                 return (
-                  <g transform={`translate(${arrowX}, ${arrowY}) rotate(${angle * 180 / Math.PI})`}>
+                  <g transform={`translate(${marsSvg.x + 15}, ${marsSvg.y}) rotate(${svgVelocityAngle * 180 / Math.PI})`}>
+                    {/* Arrow tail line */}
+                    <line
+                      x1="-12"
+                      y1="0"
+                      x2="0"
+                      y2="0"
+                      stroke="#ff6b4a"
+                      strokeWidth="1.5"
+                      opacity="0.7"
+                    />
+                    {/* Arrow head */}
                     <path
                       d="M 0 0 L -6 -3 L -6 3 Z"
                       fill="#ff6b4a"
                       opacity="0.7"
                     >
-                      <title>Mars orbital direction</title>
+                      <title>Mars orbital direction (counterclockwise)</title>
                     </path>
                   </g>
                 );
