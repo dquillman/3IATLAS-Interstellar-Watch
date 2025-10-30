@@ -38,43 +38,63 @@ import { SummaryData, Observation, Anomaly, ConfidenceLevel, AnomalyStatus, Futu
  * with verified ESA observations to provide accurate, real-time mission briefings.
  */
 
-// Real data about 3I/ATLAS from official sources
-// Discovery: July 1, 2025 by ATLAS telescope (Río Hurtado, Chile)
-// Source: ESA Planetary Defence Office
+// Real data about 3I/ATLAS from official sources ONLY
+// ALL data below is sourced from NASA, ESA, Hubble, MPC official statements
 const REAL_3I_ATLAS_DATA = {
     "object": {
         "shortname": "3I/ATLAS",
-        "fullname": "3I/ATLAS (2025)",
+        "fullname": "3I/ATLAS (C/2025 N1)",
         "discovery_source": "ATLAS Survey (Río Hurtado, Chile)",
         "discovery_date": "2025-07-01",
         "orbit_class": {
             "name": "Hyperbolic (Interstellar)",
-            "code": "I"
+            "code": "I",
+            "eccentricity": "6.14",
+            "inclination_degrees": "175.1"
         },
         "classification": "Active comet",
     },
     "physical_characteristics": {
-        "estimated_diameter_km": "up to 20",
-        "notes": "Active comet capable of sublimation as it approaches the Sun"
+        "diameter_upper_limit_km": "5.6",
+        "diameter_lower_limit_km": "0.44",
+        "source": "Hubble Space Telescope observations Aug 20, 2025",
+        "velocity_mph": "130000",
+        "velocity_kph": "209000",
+        "notes": "Highest velocity ever recorded for a solar system visitor"
     },
     "orbit": {
-        "velocity_km_s": "60", // Relative to the Sun
-        "closest_approach_date": "Late October 2025",
-        "closest_approach_note": "Passing inside Mars's orbit",
-        "distance_from_earth_at_closest_million_km": "240",
+        "perihelion_date": "2025-10-29",
+        "perihelion_distance_au": "1.36",
+        "perihelion_distance_million_km": "203",
+        "closest_to_earth_date": "2025-12-19",
+        "closest_to_earth_distance_million_km": "270",
+        "closest_to_earth_distance_au": "1.8",
         "distance_from_sun_july_3_million_km": "670",
-        "notes": "Hidden behind the Sun at closest approach, expected to reappear early December 2025"
+        "notes": "Hidden behind Sun during perihelion, reappearing early December 2025"
+    },
+    "threat_assessment": {
+        "threat_to_earth": "No threat",
+        "minimum_distance_au": "1.6",
+        "minimum_distance_million_km": "240",
+        "source": "NASA Planetary Defense official statement"
+    },
+    "natural_origin": {
+        "confirmed_natural": true,
+        "statement": "Active comet and newly identified interstellar object from outside our Solar System",
+        "source": "ESA official statement"
     },
     "observation_network": {
         "coordinated_by": "ESA Planetary Defence Office",
         "telescopes": ["Hawaii", "Chile", "Australia"],
-        "activities": "Precovery searches in archival data ongoing"
+        "activities": "Pre-discovery observations back to June 14, 2025"
     },
     "data_sources": [
         "ESA Planetary Defence Office",
         "ATLAS Survey",
         "NASA JPL Horizons",
-        "Minor Planet Center"
+        "Minor Planet Center",
+        "Hubble Space Telescope",
+        "James Webb Space Telescope"
     ]
 };
 
@@ -296,35 +316,30 @@ function buildPrompt(realData: any): string {
 
         1.  **summaryData**:
             *   'lastUpdateTimestamp': Use the current ISO date.
-            *   'currentPhase': Determine based on the current date and closest approach date (Late October 2025). Use 'Pre-Perihelion', 'Perihelion', or 'Post-Perihelion' as appropriate.
-            *   'isNatural.status': true (it is a confirmed natural comet)
-            *   'isNatural.note': 'Confirmed as a natural interstellar comet. No artificial characteristics detected.'
+            *   'currentPhase': Determine based on current date vs perihelion_date (2025-10-29): Use 'Pre-Perihelion' if before, 'Perihelion' if within 48 hours, 'Post-Perihelion' if after.
+            *   'isNatural.status': true
+            *   'isNatural.note': Use EXACT quote from data: "Active comet and newly identified interstellar object from outside our Solar System" (Source: ESA official statement)
             *   'maneuverEvidence.status': false
-            *   'maneuverEvidence.note': 'Object exhibits behavior consistent with natural cometary activity. No evidence of propulsion or course corrections.'
-            *   'threatLevel': Dynamically assess based on current phase and proximity:
-                - Use 'Nominal' if object is far from Earth and post-perihelion
-                - Use 'Elevated' during pre-perihelion approach phase (standard protocol for any interstellar visitor approaching)
-                - Use 'High' during perihelion passage or if closest approach distance is less than 1 AU
-                - Use 'Critical' only if on collision course or exhibiting anomalous behavior (not expected for 3I/ATLAS)
-            *   'threatLevelReason': Provide clear, factual explanation for the threat level based on:
-                - Current distance from Earth
-                - Velocity and trajectory
-                - Current mission phase
-                - Any anomalous behavior or lack thereof
-                - Expected closest approach distance (240 million km / 1.6 AU for 3I/ATLAS)
-                Example: "Elevated threat level due to interstellar origin and ongoing approach phase. Closest approach of 240 million km (1.6 AU) in late October 2025 presents no collision risk but warrants continued monitoring."
-            *   'assessment': Write a factual assessment based on the real data. Mention it was discovered July 1, 2025, is an active comet up to 20km wide, and will make closest approach in late October 2025.
+            *   'maneuverEvidence.note': 'Confirmed hyperbolic trajectory with eccentricity 6.14 and inclination 175.1° consistent with natural interstellar origin. No propulsion detected.'
+            *   'threatLevel': Use official assessment ONLY:
+                - 'Nominal' - Object poses no threat to Earth per NASA Planetary Defense
+                - Closest approach: 240 million km (1.6 AU) - far beyond danger threshold
+            *   'threatLevelReason': Use EXACT official statement: "Comet 3I/ATLAS poses no threat to Earth. Will remain at distance of at least 1.6 AU (240 million km). Perihelion Oct 29, 2025 at 1.36 AU inside Mars orbit. Closest to Earth Dec 19, 2025 at 270 million km." (Source: NASA official statement)
+            *   'assessment': Use ONLY these verified facts: "Discovered July 1, 2025 by ATLAS Survey Chile. Third confirmed interstellar object (after 1I/'Oumuamua and 2I/Borisov). Diameter: 0.44-5.6 km per Hubble Aug 20, 2025 observations. Velocity: 209,000 kph (highest ever recorded). Hyperbolic orbit (e=6.14) confirms interstellar origin. Perihelion Oct 29, 2025. No threat to Earth."
 
         2.  **observationData**:
-            *   Create ONLY factual timeline events based on the real data:
-            *   Discovery: '2025-07-01' by 'ATLAS Survey (Río Hurtado, Chile)' - Initial detection
-            *   Interstellar Confirmation: Shortly after discovery, confirming hyperbolic trajectory and interstellar origin
-            *   Classification: Confirmed as active comet capable of sublimation
-            *   Closest Approach: 'Late October 2025' - Will pass inside Mars's orbit, 240 million km from Earth
-            *   Solar Conjunction: Hidden behind Sun during closest approach, reappearing early December 2025
-            *   Set 'confidence' to 'Confirmed' for verified events, 'High' for derived conclusions
+            *   Include ONLY these officially documented observations with exact dates and sources:
+            *   '2025-06-14' - 'Zwicky Transient Facility' - 'Astrometry' - 'Pre-discovery observations (earliest detection)' - Confidence: 'Confirmed'
+            *   '2025-07-01' - 'ATLAS Survey (Río Hurtado, Chile)' - 'Discovery' - 'Official discovery and first report to Minor Planet Center' - Confidence: 'Confirmed'
+            *   '2025-07-02' - 'Nordic Optical Telescope' - 'Visual Imaging' - 'Confirmed active coma and diffuse appearance (Jewitt & Luu)' - Confidence: 'Confirmed'
+            *   '2025-07-03' - 'ESA Ground Network' - 'Tracking' - '670 million km from Sun. ESA begins coordinated observations (Hawaii, Chile, Australia)' - Confidence: 'Confirmed'
+            *   '2025-07-21' - 'Hubble Space Telescope' - 'Imaging' - 'Captured teardrop dust cocoon at 277 million miles from Earth' - Confidence: 'Confirmed'
+            *   '2025-08-06' - 'James Webb Space Telescope' - 'NIR Spectroscopy' - 'Detected CO₂ dominated coma with sunward outgassing' - Confidence: 'Confirmed'
+            *   '2025-08-20' - 'Hubble Space Telescope' - 'Size Analysis' - 'Diameter estimate: 0.44-5.6 km' - Confidence: 'Confirmed'
+            *   '2025-10-03' - 'ESA Mars Express & ExoMars TGO' - 'Remote Observation' - 'Observed from Mars orbit at 30 million km distance' - Confidence: 'Confirmed'
+            *   '2025-10-29' - 'Perihelion' - 'Trajectory Milestone' - 'Closest approach to Sun: 203 million km (1.36 AU)' - Confidence: 'Confirmed'
             *   Give each a unique ID starting from 1
-            *   Sort by 'dateObserved' chronologically
+            *   Sort chronologically by dateObserved
 
         3.  **anomalyData**:
             *   Based ONLY on verified observations from NASA, ESA, Hubble, JWST, and MPC, include these REAL anomalies:
