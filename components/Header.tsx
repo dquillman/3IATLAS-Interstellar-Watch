@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ lastUpdateTimestamp, onRequestUpdate, i
       <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-comet-blue-300 to-comet-blue-500">
         3I/ATLAS Interstellar Watch
       </h1>
-      <p className="text-sm text-comet-blue-500 mt-2">Version 1.2.0</p>
+      <p className="text-sm text-comet-blue-500 mt-2">Version 1.3.0</p>
       <p className="mt-4 text-lg text-comet-blue-300 max-w-3xl mx-auto">
         Real-time threat analysis and mission status from the Interstellar Watch Program.
       </p>
