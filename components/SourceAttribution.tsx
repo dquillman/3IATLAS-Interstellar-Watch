@@ -8,7 +8,7 @@ const sources = [
   },
   {
     name: 'NASA JPL Horizons',
-    description: 'Live API providing precise orbital parameters, ephemeris data, and trajectory calculations updated in real-time',
+    description: 'Live API providing precise orbital parameters, ephemeris data, and trajectory calculations updated in real-time. API: https://ssd.jpl.nasa.gov/api/horizons.api',
     url: 'https://ssd.jpl.nasa.gov/horizons/'
   },
   {
@@ -28,7 +28,7 @@ const sources = [
   },
   {
     name: 'Minor Planet Center',
-    description: 'Central repository aggregating and verifying all observations worldwide from the global telescope network',
+    description: 'Central repository aggregating and verifying all observations worldwide from the global telescope network. API: https://data.minorplanetcenter.net/api/get-obs',
     url: 'https://www.minorplanetcenter.net/'
   },
 ];

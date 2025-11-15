@@ -2,11 +2,16 @@
 
 This document lists all official sources for 3I/ATLAS data used in this application.
 
-## What Changed
+## Real Data Sources
 
-**BEFORE:** The app used hardcoded fictional data that didn't match reality. Gemini was generating fake observations based on made-up numbers.
+**THIS APP USES REAL API CALLS** to official astronomical data sources:
 
-**NOW:** The app uses VERIFIED REAL DATA from official space agencies and astronomical institutions.
+✅ **NASA JPL Horizons API** - Live API calls for orbital elements and ephemeris data
+✅ **Minor Planet Center (MPC) API** - Live API calls for observation data
+✅ **Real Orbital Mechanics Calculations** - Positions calculated using verified orbital parameters when API data unavailable
+✅ **Backend Server** - Proxies API calls to avoid CORS restrictions
+
+The app makes **REAL API calls** on every data refresh. If the APIs are unavailable or 3I/ATLAS is not yet in the databases, the app uses calculated positions based on verified orbital parameters using real orbital mechanics formulas.
 
 ---
 
@@ -42,12 +47,17 @@ This document lists all official sources for 3I/ATLAS data used in this applicat
 
 **API Documentation:** https://ssd-api.jpl.nasa.gov/doc/horizons.html
 
+**Direct Query URLs (Real API Calls):**
+- Base API: `https://ssd.jpl.nasa.gov/api/horizons.api`
+- Example query for 3I/ATLAS: `https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='DES=3I;'&OBJ_DATA=YES&MAKE_EPHEM=YES`
+- Web Interface: https://ssd.jpl.nasa.gov/horizons/app.html
+
 **What We Query:**
 - Orbital elements (eccentricity, inclination, perihelion distance)
 - Ephemeris data (position over time)
 - Velocity vectors
 
-**Implementation:** The app attempts to fetch live data from JPL Horizons API on each update. If the API is unavailable, it falls back to verified ESA data.
+**Implementation:** The app makes **REAL API CALLS** to JPL Horizons on each update via the backend server. The app tries multiple designation variations (3I, 3I/ATLAS, C/2025 N1, etc.) to find the most recent data. If the API is unavailable or 3I/ATLAS is not yet cataloged, it calculates positions using real orbital mechanics based on verified parameters.
 
 ### 3. ATLAS Survey (Asteroid Terrestrial-impact Last Alert System)
 
@@ -61,9 +71,18 @@ This document lists all official sources for 3I/ATLAS data used in this applicat
 
 **URL:** https://www.minorplanetcenter.net/
 
+**API Endpoint:** https://data.minorplanetcenter.net/api/get-obs
+
+**Direct Query URLs (Real API Calls):**
+- API Base: `https://data.minorplanetcenter.net/api/get-obs`
+- Database Search: https://www.minorplanetcenter.net/db_search
+- Observation Data: https://www.minorplanetcenter.net/iau/mpc.html
+
 **Purpose:** Aggregates observation data from the worldwide astronomical community
 
 **Database:** Central repository for all small body observations
+
+**Implementation:** The app makes **REAL API CALLS** to MPC on each update, trying multiple designation variations to find the most recent observation data for 3I/ATLAS.
 
 ---
 
@@ -71,17 +90,19 @@ This document lists all official sources for 3I/ATLAS data used in this applicat
 
 ### What This App Does:
 
-✅ Uses ONLY verified data from ESA, NASA, ATLAS, and MPC
+✅ Makes **REAL API CALLS** to NASA JPL Horizons API (via backend server)
 
-✅ Attempts to fetch real-time orbital data from JPL Horizons API
+✅ Makes **REAL API CALLS** to Minor Planet Center API (via backend server)
 
-✅ Uses OpenAI (ChatGPT) with strict "no fabrication" instructions
+✅ Uses **REAL orbital mechanics calculations** when API data unavailable
 
-✅ Falls back to confirmed ESA data if APIs are unavailable
+✅ Uses OpenAI (GPT-4o-mini) with strict "no fabrication" instructions
+
+✅ Falls back to calculated positions using verified orbital parameters if APIs unavailable
 
 ✅ Provides source attribution for all data points
 
-✅ Uses GPT-4o-mini for fast, cost-effective processing with factual accuracy
+✅ All calculations use real astronomical formulas
 
 ### What This App Does NOT Do:
 
@@ -132,16 +153,19 @@ This document lists all official sources for 3I/ATLAS data used in this applicat
    - Sends strict instructions to OpenAI (GPT-4o-mini) to use only real data
    - Returns: Structured mission briefing
 
-### Data Flow
+### Data Flow (REAL API CALLS)
 
 ```
 1. User requests update
-2. App calls fetchJPLHorizonsData()
-3. If successful → Combine JPL + ESA data
-4. If failed → Use verified ESA data only
-5. Send real data to OpenAI with strict "no fabrication" instructions
-6. GPT-4o-mini generates briefing based ONLY on provided facts
-7. Display to user with source attribution
+2. Frontend calls backend server API endpoints
+3. Backend makes REAL API call to NASA JPL Horizons API
+4. Backend makes REAL API call to Minor Planet Center API
+5. If APIs return data → Use that REAL data
+6. If APIs unavailable/object not found → Calculate positions using real orbital mechanics
+7. Combine API data + calculated data
+8. Send to OpenAI with strict "no fabrication" instructions
+9. GPT-4o-mini generates briefing based ONLY on provided facts
+10. Display to user with source attribution
 ```
 
 ---
@@ -163,8 +187,31 @@ By using only verified sources, this app ensures users receive factual, trustwor
 
 ---
 
+## Direct API Access URLs
+
+### NASA JPL Horizons API
+- **API Endpoint:** https://ssd.jpl.nasa.gov/api/horizons.api
+- **Web Interface:** https://ssd.jpl.nasa.gov/horizons/app.html
+- **Documentation:** https://ssd-api.jpl.nasa.gov/doc/horizons.html
+- **Query Example:** `https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='DES=3I;'&OBJ_DATA=YES&MAKE_EPHEM=YES`
+
+### Minor Planet Center API
+- **API Endpoint:** https://data.minorplanetcenter.net/api/get-obs
+- **Database Search:** https://www.minorplanetcenter.net/db_search
+- **Observation Archive:** https://www.minorplanetcenter.net/iau/mpc.html
+
+### ESA Planetary Defence
+- **Official Page:** https://www.esa.int/Space_Safety/Planetary_Defence
+- **News & Updates:** https://www.esa.int/Space_Safety
+
+### ATLAS Survey
+- **Project Page:** https://fallingstar.com/
+- **ATLAS Website:** https://atlas.fallingstar.com/
+
+---
+
 ## Last Updated
-October 26, 2025
+Updated to use REAL API calls to JPL Horizons and Minor Planet Center with multiple designation variations
 
 ## Maintained By
 3I/ATLAS Interstellar Watch Team
