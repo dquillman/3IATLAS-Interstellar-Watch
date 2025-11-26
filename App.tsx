@@ -24,21 +24,21 @@ const App: React.FC = () => {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
 
   const loadData = useCallback(async () => {
-      try {
-        console.log('[App] Starting data fetch...');
-        const { summaryData, observationData, anomalyData, futureObservationData } = await fetchData();
-        console.log('[App] Data fetched successfully');
-        setSummary(summaryData);
-        setObservations(observationData);
-        setAnomalies(anomalyData);
-        setFutureObservations(futureObservationData);
-        setError(null);
-      } catch (err) {
-        console.error('[App] Error loading data:', err);
-        setError(`Failed to receive telemetry: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
+    try {
+      console.log('[App] Starting data fetch...');
+      const { summaryData, observationData, anomalyData, futureObservationData } = await fetchData();
+      console.log('[App] Data fetched successfully');
+      setSummary(summaryData);
+      setObservations(observationData);
+      setAnomalies(anomalyData);
+      setFutureObservations(futureObservationData);
+      setError(null);
+    } catch (err) {
+      console.error('[App] Error loading data:', err);
+      setError(`Failed to receive telemetry: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   }, []);
-  
+
   const handleRequestUpdate = useCallback(async () => {
     setIsUpdating(true);
     await loadData();
@@ -59,12 +59,12 @@ const App: React.FC = () => {
       try {
         await loadData();
         clearTimeout(timeout);
+        setIsLoading(false); // Set loading false immediately after successful load
+        setNextRefreshIn(3600); // Reset timer after load
       } catch (err) {
         clearTimeout(timeout);
         console.error('[App] Initial load error:', err);
-      } finally {
         setIsLoading(false);
-        setNextRefreshIn(3600); // Reset timer after load
       }
     }
     initialLoad();
@@ -157,11 +157,11 @@ const App: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-comet-blue-950">
         <div className="flex flex-col items-center space-y-4">
-            <svg className="animate-spin h-10 w-10 text-comet-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="text-comet-blue-300 text-lg">Receiving Telemetry & Running Analysis...</p>
+          <svg className="animate-spin h-10 w-10 text-comet-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-comet-blue-300 text-lg">Receiving Telemetry & Running Analysis...</p>
         </div>
       </div>
     );
@@ -179,14 +179,14 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-comet-blue-950 font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <Header
-            lastUpdateTimestamp={summary?.lastUpdateTimestamp}
-            onRequestUpdate={handleRequestUpdate}
-            isUpdating={isUpdating}
-            onExportData={handleExportData}
-            canExport={!!summary}
-            nextRefreshIn={nextRefreshIn}
-            autoRefreshEnabled={autoRefreshEnabled}
-            onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+          lastUpdateTimestamp={summary?.lastUpdateTimestamp}
+          onRequestUpdate={handleRequestUpdate}
+          isUpdating={isUpdating}
+          onExportData={handleExportData}
+          canExport={!!summary}
+          nextRefreshIn={nextRefreshIn}
+          autoRefreshEnabled={autoRefreshEnabled}
+          onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
         />
         <main className="mt-8 space-y-8">
           {summary && <StatusDashboard summary={summary} />}
@@ -204,14 +204,14 @@ const App: React.FC = () => {
             </div>
 
             <div className="lg:col-span-1 space-y-8">
-                <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
-                    <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Key Anomalies</h2>
-                    <AnomalyWatchList anomalies={anomalies} />
-                </div>
-                 <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
-                    <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Scheduled Mission Directives</h2>
-                    <FutureObservations observations={futureObservations} />
-                </div>
+              <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
+                <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Key Anomalies</h2>
+                <AnomalyWatchList anomalies={anomalies} />
+              </div>
+              <div className="bg-comet-blue-900/50 p-6 rounded-lg border border-comet-blue-800 shadow-xl">
+                <h2 className="text-2xl font-bold text-comet-blue-200 mb-4">Scheduled Mission Directives</h2>
+                <FutureObservations observations={futureObservations} />
+              </div>
             </div>
           </div>
         </main>

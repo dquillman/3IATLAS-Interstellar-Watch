@@ -8,8 +8,6 @@ steps:
       - 'build'
       - '--no-cache'  # Force fresh build with no cache
       - '-t'
-      - 'gcr.io/$PROJECT_ID/iatlas-app:$SHORT_SHA'
-      - '-t'
       - 'gcr.io/$PROJECT_ID/iatlas-app:v1.5.1'
       - '-t'
       - 'gcr.io/$PROJECT_ID/iatlas-app:latest'
@@ -42,7 +40,6 @@ timeout: '1800s'  # 30 minutes total
 
 # Store images in Container Registry
 images:
-  - 'gcr.io/$PROJECT_ID/iatlas-app:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/iatlas-app:v1.5.1'
   - 'gcr.io/$PROJECT_ID/iatlas-app:latest'
 

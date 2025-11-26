@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ lastUpdateTimestamp, onRequestUpdate, i
       <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-comet-blue-300 to-comet-blue-500">
         3I/ATLAS Interstellar Watch
       </h1>
-      <p className="text-sm text-comet-blue-500 mt-2">Version 1.6.0</p>
+      <p className="text-sm text-comet-blue-500 mt-2">Version 1.8.0</p>
       <p className="mt-4 text-lg text-comet-blue-300 max-w-3xl mx-auto">
         Real-time threat analysis and mission status from the Interstellar Watch Program.
       </p>
@@ -50,9 +50,9 @@ const Header: React.FC<HeaderProps> = ({ lastUpdateTimestamp, onRequestUpdate, i
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-transparent border border-comet-blue-500 text-comet-blue-300 text-sm sm:text-base font-semibold rounded-lg shadow-md hover:bg-comet-blue-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-comet-blue-400 focus:ring-opacity-75 transition-all duration-200 disabled:border-comet-blue-700 disabled:text-comet-blue-600 disabled:cursor-not-allowed"
           aria-label="Export mission briefing data"
         >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
           <span>Export Briefing</span>
         </button>
         <div className="w-full flex flex-col items-center justify-center gap-2 mt-3">

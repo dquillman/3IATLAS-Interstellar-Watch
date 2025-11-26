@@ -14,6 +14,7 @@ dotenv.config({ path: '.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+console.log("SERVER VERSION: REAL API FETCH (DES=3I;)");
 
 // Initialize OpenAI with API key from environment
 const openai = new OpenAI({
@@ -102,7 +103,7 @@ app.get('/api/jpl-horizons/:objectId', async (req, res) => {
                         EPHEM_TYPE: 'OBSERVER',
                         CENTER: '500@399',
                         START_TIME: startTime || new Date().toISOString().split('T')[0],
-                        STOP_TIME: stopTime || new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+                        STOP_TIME: stopTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         STEP_SIZE: stepSize,
                         QUANTITIES: '1,9,20',
                         CSV_FORMAT: 'YES'
@@ -175,7 +176,7 @@ app.get('/api/jpl-horizons/:objectId', async (req, res) => {
             EPHEM_TYPE: 'OBSERVER',
             CENTER: '500@399',
             START_TIME: startTime || new Date().toISOString().split('T')[0],
-            STOP_TIME: stopTime || new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+            STOP_TIME: stopTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             STEP_SIZE: stepSize,
             QUANTITIES: '1,9,20',
             CSV_FORMAT: 'YES'
@@ -233,50 +234,19 @@ app.get('/api/solar-system-positions', async (req, res) => {
         const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
         // Fetch positions for Earth, Mars, and 3I/ATLAS
-        // For 3I/ATLAS: Calculate position using REAL orbital mechanics based on verified orbital parameters
-        // Based on verified data: perihelion Oct 29, 2025 at 1.36 AU, hyperbolic trajectory (e=6.14, i=175.1°)
         const objects = [
             { id: 'Earth', code: '399' },
             { id: 'Mars', code: '499' },
-            { id: '3I/ATLAS', code: 'calculated' } // Position calculated using real orbital mechanics
+            { id: '3I/ATLAS', code: 'DES=3I;' }
         ];
 
         const positions = {};
 
         for (const obj of objects) {
-            // Handle calculated 3I/ATLAS position using real orbital mechanics
-            if (obj.code === 'calculated') {
-                console.log(`[Solar System] Calculating position for ${obj.id} using real orbital mechanics...`);
-
-                // 3I/ATLAS verified data from ESA/NASA:
-                // - Perihelion: Oct 29, 2025 at 1.36 AU
-                // - Hyperbolic trajectory with e = 6.14, inclination = 175.1°
-                // - Coming from interstellar space, passing through inner solar system
-                // - Oct 30 is 1 day past perihelion
-
-                // Calculate realistic position for Oct 30, 2025 (1 day past perihelion)
-                // Position: Just past perihelion, moving away from Sun on hyperbolic trajectory
-                // At 175.1° inclination, it's in a highly retrograde orbit
-                const distance = 1.38; // AU - slightly past perihelion distance of 1.36 AU
-                const angle = Math.PI * 0.9; // Approximately 162°
-                const inclination = 175.1 * Math.PI / 180; // Convert to radians
-
-                positions[obj.id] = {
-                    x: distance * Math.cos(angle),
-                    y: distance * Math.sin(angle) * Math.cos(inclination),
-                    z: distance * Math.sin(angle) * Math.sin(inclination),
-                    date: dateStr
-                };
-
-                console.log(`[Solar System] ${obj.id} position (calculated): X=${positions[obj.id].x.toFixed(2)}, Y=${positions[obj.id].y.toFixed(2)}, Z=${positions[obj.id].z.toFixed(2)}`);
-                continue;
-            }
-
-            // Fetch real positions from JPL for Earth and Mars
             const params = new URLSearchParams({
                 format: 'text',
-                COMMAND: obj.code,
-                OBJ_DATA: 'NO',
+                COMMAND: `'${obj.code}'`,
+                OBJ_DATA: 'YES',
                 MAKE_EPHEM: 'YES',
                 EPHEM_TYPE: 'VECTORS',
                 CENTER: '500@10', // Sun center
@@ -290,7 +260,7 @@ app.get('/api/solar-system-positions', async (req, res) => {
             });
 
             const url = `https://ssd.jpl.nasa.gov/api/horizons.api?${params.toString()}`;
-            console.log(`[Solar System] Fetching ${obj.id} position...`);
+            console.log(`[Solar System] Fetching ${obj.id} position from: ${url}`);
 
             try {
                 const response = await fetch(url);
@@ -318,18 +288,23 @@ app.get('/api/solar-system-positions', async (req, res) => {
                                 console.log(`[Solar System] ${obj.id} position: X=${parts[2]}, Y=${parts[3]}, Z=${parts[4]}`);
                             } else {
                                 console.warn(`[Solar System] ${obj.id}: Insufficient data parts (got ${parts.length})`);
+                                positions[obj.id] = { error: `Insufficient data parts: ${parts.length}` };
                             }
                         } else {
                             console.warn(`[Solar System] ${obj.id}: No data lines found`);
+                            positions[obj.id] = { error: "No data lines found" };
                         }
                     } else {
                         console.warn(`[Solar System] ${obj.id}: No $$SOE/$$EOE markers found in response`);
+                        positions[obj.id] = { error: "No $$SOE/$$EOE markers found", raw: data.substring(0, 100) };
                     }
                 } else {
                     console.error(`[Solar System] ${obj.id}: HTTP ${response.status} - ${response.statusText}`);
+                    positions[obj.id] = { error: `HTTP ${response.status}` };
                 }
             } catch (error) {
                 console.error(`[Solar System] ${obj.id}: Fetch error:`, error);
+                positions[obj.id] = { error: `Fetch error: ${error.message}` };
             }
         }
 

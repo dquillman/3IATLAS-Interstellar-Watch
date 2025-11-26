@@ -1,0 +1,9 @@
+To add a custom icon:
+1. Create or download a .ico file (256x256 or 128x128 recommended)
+2. Name it 'app.ico' and place it in this directory
+3. Re-run this setup script
+
+You can create icons at:
+- https://www.icoconverter.com/
+- https://convertio.co/png-ico/
+- Use any image editor to create and convert to .ico format
