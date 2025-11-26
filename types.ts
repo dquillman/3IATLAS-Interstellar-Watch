@@ -1,4 +1,3 @@
-// FIX: Removed self-import of 'ConfidenceLevel' to resolve declaration conflict.
 export enum ConfidenceLevel {
   Low = 'Low',
   Medium = 'Medium',
@@ -10,6 +9,8 @@ export enum AnomalyStatus {
   Normal = 'Normal',
   Watch = 'Watch',
   Alert = 'Alert',
+  Confirmed = 'Confirmed',
+  UnderInvestigation = 'Under Investigation',
 }
 
 export enum FutureStatus {

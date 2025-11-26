@@ -22,10 +22,10 @@ $WScriptShell = New-Object -ComObject WScript.Shell
 # Create shortcut
 $Shortcut = $WScriptShell.CreateShortcut($shortcutPath)
 $Shortcut.TargetPath = "powershell.exe"
-$Shortcut.Arguments = "-NoExit -ExecutionPolicy Bypass -File `"$launcherPath`""
+$Shortcut.Arguments = "-WindowStyle Hidden -Command `"Start-Process 'https://atlas-interstellar-watch.web.app'`""
 $Shortcut.WorkingDirectory = $scriptPath
-$Shortcut.Description = "3I/ATLAS Interstellar Watch - Real-time threat analysis for interstellar object 3I/ATLAS"
-$Shortcut.WindowStyle = 1  # Normal window
+$Shortcut.Description = "3I/ATLAS Interstellar Watch - Live Mission Control"
+$Shortcut.WindowStyle = 7  # Minimized/Hidden (since we're just launching a URL)
 
 # Set icon if it exists
 if (Test-Path $iconPath) {

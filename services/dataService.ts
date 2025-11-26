@@ -98,14 +98,10 @@ const BASELINE_3I_ATLAS_DATA = {
     ]
 };
 
-// NOTE: JPL Horizons API cannot be called directly from browser due to CORS restrictions
-// For production, this would require a backend proxy server
-// Currently using verified ESA observational data which is sufficient for mission briefings
-
 // Backend API configuration
 const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
-// Use environment variable if set, otherwise use window.location.origin in browser, fallback to localhost
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
+// Use relative path for Firebase Hosting rewrites, or environment variable for local dev
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 console.log('[DataService] Configuration:', {
     USE_BACKEND,
